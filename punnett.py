@@ -2,7 +2,7 @@
 """
 Author : madelinemelichar <madelinemelichar@localhost>
 Date   : 2021-11-18
-Purpose: BE 534 Fall 2021, final project 
+Purpose: BE 534 Fall 2021, final project
 """
 
 import argparse
@@ -31,19 +31,20 @@ def get_args():
     return parser.parse_args()
 
 # --------------------------------------------------
+
+
 def get_combos(parents):
     """Genotype Combinations"""
 
     combinations = []
     probability = {}
-  
+
     combinations.append(parents[0][0]+parents[1][0])
     combinations.append(parents[0][0]+parents[1][1])
     combinations.append(parents[0][1]+parents[1][0])
     combinations.append(parents[0][1]+parents[1][1])
 
-
-    combinations = ["Aa" if geno=="aA" else geno for geno in combinations]
+    combinations = ["Aa" if geno == "aA" else geno for geno in combinations]
 
     for geno in np.unique(combinations):
         probability[geno] = combinations.count(geno)/len(combinations)
@@ -59,12 +60,14 @@ def main():
     for couple in args.parent:
         parents = couple.split("x")
         p_child, combos = get_combos(parents)
-        print("Child Genotype Probabilities: AA = {}, Aa = {}, aa = {}".format(p_child.get('AA',0),p_child.get('Aa',0),p_child.get('aa',0)))
+        print("Child Genotype Probabilities: AA = {}, Aa = {}, aa = {}".format(
+            p_child.get('AA', 0), p_child.get('Aa', 0), p_child.get('aa', 0)))
 
         if args.punnett:
-            punnett_square = tabulate([["",parents[0][0],parents[0][1]],[parents[1][0],combos[0],combos[2]],[parents[1][1],combos[1],combos[3]]], tablefmt='grid')
+            punnett_square = tabulate([["", parents[0][0], parents[0][1]], [
+                                      parents[1][0], combos[0], combos[2]], [parents[1][1], combos[1], combos[3]]], tablefmt='grid')
             print(punnett_square)
-    
+
 
 # --------------------------------------------------
 if __name__ == '__main__':
