@@ -1,72 +1,112 @@
 #!/usr/bin/env python3
 """
 Author : madelinemelichar <madelinemelichar@localhost>
-Date   : 2021-11-28
-Purpose: Rock the Casbah
+Date   : 2021-11-18
+Purpose: test punnett.py
 """
 
-import argparse
+from subprocess import getstatusoutput, getoutput
+import os
+import random
+import re
+import string
+
+prg = './punnett.py'
 
 
 # --------------------------------------------------
-def get_args():
-    """Get command-line arguments"""
+def test_exists():
+    """exists"""
 
-    parser = argparse.ArgumentParser(
-        description='Rock the Casbah',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    parser.add_argument('positional',
-                        metavar='str',
-                        help='A positional argument')
-
-    parser.add_argument('-a',
-                        '--arg',
-                        help='A named string argument',
-                        metavar='str',
-                        type=str,
-                        default='')
-
-    parser.add_argument('-i',
-                        '--int',
-                        help='A named integer argument',
-                        metavar='int',
-                        type=int,
-                        default=0)
-
-    parser.add_argument('-f',
-                        '--file',
-                        help='A readable file',
-                        metavar='FILE',
-                        type=argparse.FileType('rt'),
-                        default=None)
-
-    parser.add_argument('-o',
-                        '--on',
-                        help='A boolean flag',
-                        action='store_true')
-
-    return parser.parse_args()
+    assert os.path.isfile(prg)
 
 
 # --------------------------------------------------
-def main():
-    """Make a jazz noise here"""
+def test_usage():
+    """usage"""
 
-    args = get_args()
-    str_arg = args.arg
-    int_arg = args.int
-    file_arg = args.file
-    flag_arg = args.on
-    pos_arg = args.positional
-
-    print(f'str_arg = "{str_arg}"')
-    print(f'int_arg = "{int_arg}"')
-    print('file_arg = "{}"'.format(file_arg.name if file_arg else ''))
-    print(f'flag_arg = "{flag_arg}"')
-    print(f'positional = "{pos_arg}"')
+    for flag in ['-h', '--help']:
+        rv, out = getstatusoutput(f'{prg} {flag}')
+        assert rv == 0
+        assert out.lower().startswith('usage')
 
 
 # --------------------------------------------------
-if __name__ == '__main__':
-    main()
+def test_no_args():
+    """ Dies on no args """
+
+    rv, out = getstatusoutput(prg)
+    assert rv != 0
+    assert re.match("usage", out, re.IGNORECASE)
+
+
+# --------------------------------------------------
+def test_parent():
+    """Test for (1) parent genotype pair"""
+
+    parents = "AAxAa"
+    rv, out = getstatusoutput(f'{prg} {parents}')
+    assert rv == 0
+    assert re.search('Child Genotype Probabilities: AA = 0.5, Aa = 0.5, aa = 0', out)
+
+
+# --------------------------------------------------
+def test_parent_punnett():
+    """Test for (1) parent genotype pair and punnett square"""
+
+    parents = "AAxAa"
+    rv, out = getstatusoutput(f'{prg} {parents} -p')
+    assert rv == 0
+    assert re.search('Child Genotype Probabilities: AA = 0.5, Aa = 0.5, aa = 0 '+
+    '''
+    +---+----+----+
+    |   | A  | A  |
+    +---+----+----+
+    | A | AA | AA |
+    +---+----+----+
+    | a | Aa | Aa |
+    +---+----+----+''', out)
+
+
+    # --------------------------------------------------
+def test_parents():
+    """Test for (2) parent genotype pair"""
+
+    parents = "AAxAa aaxaa"
+    expected = '\n'.join([
+        'Child Genotype Probabilities: AA = 0.5, Aa = 0.5, aa = 0',
+        'Child Genotype Probabilities: AA = 0, Aa = 0, aa = 1.0'
+    ])
+    rv, out = getstatusoutput(f'{prg} {parents}')
+    assert rv == 0
+    assert re.search(expected, out)
+
+
+# --------------------------------------------------
+def test_parents_punnetts():
+    """Test for (s) parent genotype pair and punnett square"""
+
+    parents = "AAxAa aaxaa"
+    expected = '\n'.join([
+    'Child Genotype Probabilities: AA = 0.5, Aa = 0.5, aa = 0',
+    '''
+    +---+----+----+
+    |   | A  | A  |
+    +---+----+----+
+    | A | AA | AA |
+    +---+----+----+
+    | a | Aa | Aa |
+    +---+----+----+''',
+    'Child Genotype Probabilities: AA = 0, Aa = 0, aa = 1.0',
+    '''
+    +---+----+----+
+    |   | a  | a  |
+    +---+----+----+
+    | a | aa | aa |
+    +---+----+----+
+    | a | aa | aa |
+    +---+----+----+'''
+    ])
+    rv, out = getstatusoutput(f'{prg} {parents} -p')
+    assert rv == 0
+    assert re.search(expected, out)
