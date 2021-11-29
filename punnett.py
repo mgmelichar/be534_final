@@ -18,10 +18,10 @@ def get_args():
         description='Probability of expected offspring genotype with punnett square',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('couple',
+    parser.add_argument('parent',
                         type=str,
                         nargs='+',
-                        help='Couple(s) genotypes (EX: AA-Aa or aa-AA)')
+                        help='parent(s) genotypes (EX: AAxAa)')
 
     parser.add_argument('-p',
                         '--punnett',
@@ -56,8 +56,8 @@ def main():
     """Run main"""
 
     args = get_args()
-    for couple in args.couple:
-        parents = couple.split("-")
+    for couple in args.parent:
+        parents = couple.split("x")
         p_child, combos = get_combos(parents)
         print("Child Genotype Probabilities: AA = {}, Aa = {}, aa = {}".format(p_child.get('AA',0),p_child.get('Aa',0),p_child.get('aa',0)))
 
